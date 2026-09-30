@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String
+  role           String // 'BUSINESS', 'LMO', 'GATC', 'ADMIN'
+  name           String
+  failedAttempts Int       @default(0)
+  lockoutUntil   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  business      Business?
+  zones         Zone[]
+  dailyCapacity Int?
+  centreName    String?
+
+  inspections Inspection[]
+}
+
+model Business {
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id])
+  tradeName    String
+  ownerName    String
+  businessType String
+  address      String
+  phone        String?
+  email        String?
+  lat          Float?
+  lng          Float?
+  zoneId       String
+  zone         Zone          @relation(fields: [zoneId], references: [id])
+  instruments  Instrument[]
+  applications Application[]
+}
+
+model Zone {
+  id         String     @id @default(uuid())
+  name       String     @unique
+  users      User[]
+  businesses Business[]
+}
+
+model Instrument {
+  id                 String    @id
+  businessId         String
+  business           Business  @relation(fields: [businessId], references: [id])
+  serialNumber       String
+  instrumentClass    String
+  make               String?
+  model              String?
+  capacity           String?
+  accuracyClass      String?
+  location           String?
+  status             String    @default("UNVERIFIED")
+  validTo            DateTime?
+  verifyingAuthority String?
+
+  applications Application[]
+  documents    InstrumentDocument[]
+
+  @@unique([businessId, serialNumber])
+}
+
+model InstrumentDocument {
+  id           String     @id @default(uuid())
+  instrumentId String
+  instrument   Instrument @relation(fields: [instrumentId], references: [id])
+  type         String
+  fileUrl      String
+  sha256       String?
+}
+
+model Application {
+  id           String     @id
+  businessId   String
+  business     Business   @relation(fields: [businessId], references: [id])
+  instrumentId String
+  instrument   Instrument @relation(fields: [instrumentId], references: [id])
+  status       String // DRAFT, SUBMITTED, etc
+  feeSnapshot  Float?
+  type         String     @default("NEW")
+  routedToRole String?
+  routingReason String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  payment     Payment?
+  receipt     Receipt?
+  appointment Appointment?
+  inspection  Inspection?
+  certificate Certificate?
+  documents   ApplicationDocument[]
+}
+
+model ApplicationDocument {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  type          String
+  fileUrl       String
+  sha256        String?
+}
+
+model Payment {
+  id             String      @id @default(uuid())
+  applicationId  String      @unique
+  application    Application @relation(fields: [applicationId], references: [id])
+  amount         Float
+  status         String
+  idempotencyKey String      @unique
+  createdAt      DateTime    @default(now())
+
+  receipt Receipt?
+}
+
+model Receipt {
+  id            String      @id
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+  paymentId     String      @unique
+  payment       Payment     @relation(fields: [paymentId], references: [id])
+  signature     String
+  createdAt     DateTime    @default(now())
+
+  certificate Certificate?
+}
+
+model Appointment {
+  id            String      @id @default(uuid())
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+  officerId     String
+  scheduledDate DateTime
+  status        String      @default("PENDING")
+  rejectReason  String?
+}
+
+model Inspection {
+  id            String      @id @default(uuid())
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+  officerId     String
+  officer       User        @relation(fields: [officerId], references: [id])
+  pass          Boolean
+  inspectedAt   DateTime
+  reasons       String? // JSON array string
+  readings      String? // JSON array string
+  checklist     String? // JSON object string
+
+  photos InspectionPhoto[]
+}
+
+model InspectionPhoto {
+  id           String     @id @default(uuid())
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id])
+  sha256       String
+  capturedAt   DateTime
+  source       String
+  fileUrl      String
+}
+
+model Certificate {
+  id            String      @id
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+  receiptId     String      @unique
+  receipt       Receipt     @relation(fields: [receiptId], references: [id])
+  issueDate     DateTime
+  validTo       DateTime
+  status        String
+  sealHash      String
+  sealSignature String
+  payload       String
+  keyId         String?
+  publicId      String?      @unique
+
+  complaints Complaint[]
+}
+
+model Complaint {
+  id            String      @id @default(uuid())
+  certificateId String
+  certificate   Certificate @relation(fields: [certificateId], references: [id])
+  category      String
+  details       String
+  createdAt     DateTime    @default(now())
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  actorId       String
+  action        String
+  entity        String
+  entityId      String
+  beforeSummary String?
+  afterSummary  String?
+  createdAt     DateTime @default(now())
+}
+
+model Counter {
+  id    String @id
+  value Int    @default(0)
+}

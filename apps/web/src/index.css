@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: 250 250 250;
+    --color-surface: 255 255 255;
+    --color-primary: 33 63 153; /* Deep authoritative blue */
+    --color-text: 15 20 25;
+    --color-border: 210 210 215;
+    --color-error: 220 38 38;
+    --color-success: 22 163 74;
+    
+    --font-heading: 'Bricolage Grotesque', 'Noto Sans', sans-serif;
+    --font-body: 'Source Sans 3', 'Noto Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  
+  html {
+    @apply text-[rgb(var(--color-text))] bg-[rgb(var(--color-bg))] font-body;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .tick-mark-progress {
+    background-image: repeating-linear-gradient(90deg, rgb(var(--color-primary)) 0px, rgb(var(--color-primary)) 2px, transparent 2px, transparent 10px);
+  }
+  
+  .tick-mark-bottom {
+    border-bottom: 2px solid rgb(var(--color-primary));
+    position: relative;
+  }
+  .tick-mark-bottom::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background-image: repeating-linear-gradient(90deg, rgb(var(--color-primary)) 0px, rgb(var(--color-primary)) 2px, transparent 2px, transparent 20px);
+  }
+}

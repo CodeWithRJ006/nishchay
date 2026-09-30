@@ -1,0 +1,32 @@
+{
+  "name": "nishchay-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc -b apps/web apps/api packages/shared",
+    "test": "vitest run",
+    "build": "npm run build --workspaces --if-present",
+    "vercel-build": "npm run build --workspaces --if-present && cd apps/api && npx prisma generate",
+    "start": "npm start --workspace=api",
+    "dev": "npm run dev --workspaces --if-present",
+    "demo:setup": "npm run build && cd apps/api && npx prisma migrate deploy && npx tsx scripts/demoSetup.ts",
+    "demo:reset": "npm run demo:setup",
+    "preflight": "npx tsx apps/api/scripts/preflight.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}

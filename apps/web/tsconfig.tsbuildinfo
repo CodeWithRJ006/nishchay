@@ -1,0 +1,1 @@
+{"root":["./src/app.test.tsx","./src/app.tsx","./src/components.tsx","./src/main.tsx","./src/shells.tsx","./src/vite-env.d.ts","./src/pages/auth.tsx","./src/pages/certificateview.tsx","./src/pages/design.tsx","./src/pages/fieldapp.tsx","./src/pages/home.tsx","./src/pages/receiptview.tsx","./src/pages/sandboxpayment.tsx","./src/pages/verify.tsx"],"version":"5.9.3"}
